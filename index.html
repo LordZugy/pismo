@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta property="og:title" content="💌 Тебе письмо">
+<meta property="og:description" content="Нажми на конверт">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head><body>
+<title>Письмо в конверте</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Manrope:wght@400;500;700&family=Marck+Script&display=swap">
+<style id="letter-css">
+/* Layout: editor column of paper cards on the left, sticky phone preview on the right; recipient view is a full-screen night stage */
+:root{
+  --bg:#e7e3ee; --panel:#fbfafd; --ink:#2a2233; --muted:#6c6378; --line:#cfc7da;
+  --btn:#2a2233; --btn-ink:#fbfafd; --field:#ffffff; --ok:#3d7a5a;
+  --display:"Lora",Georgia,serif; --body:"Manrope",system-ui,sans-serif; --hand:"Marck Script","Segoe Script",cursive;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17141c; --panel:#221e29; --ink:#ece7f2; --muted:#a59db0; --line:#3a3343;
+  --btn:#ece7f2; --btn-ink:#17141c; --field:#1b1821; --ok:#7cc39c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17141c; --panel:#221e29; --ink:#ece7f2; --muted:#a59db0; --line:#3a3343;
+  --btn:#ece7f2; --btn-ink:#17141c; --field:#1b1821; --ok:#7cc39c; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+*{box-sizing:border-box}
+
+/* ---------- editor ---------- */
+.wrap{max-width:1120px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+header.top h1{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,34px);margin:0;text-wrap:balance}
+header.top h1 em{font-family:var(--hand);font-style:normal;font-weight:400;color:#b4537a}
+header.top p{margin:0;color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}.side{order:-1}}
+.cards{display:flex;flex-direction:column;gap:18px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.card h2{font-family:var(--display);font-weight:600;font-size:20px;margin:0}
+.card .hint{margin:-8px 0 0;color:var(--muted);font-size:13.5px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.field textarea{min-height:170px;resize:vertical;line-height:1.6}
+.field input:focus,.field textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid #b4537a;outline-offset:2px}
+.field small{color:var(--muted);font-size:12px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:520px){.row2{grid-template-columns:1fr}}
+.themes{display:flex;gap:10px;flex-wrap:wrap}
+.themes button{display:flex;align-items:center;gap:8px;font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:999px;padding:7px 14px 7px 8px;cursor:pointer}
+.themes button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dot{width:18px;height:18px;border-radius:50%}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:12px 18px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.out{display:flex;flex-direction:column;gap:10px}
+.linkbox{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--field);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;word-break:break-all;user-select:all;max-height:120px;overflow:auto}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.actions a.btn{text-decoration:none;display:inline-block}
+.status{font-size:13px;color:var(--ok);min-height:1.2em}
+.count{font-variant-numeric:tabular-nums}
+
+.side{position:sticky;top:max(16px,env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:10px;align-items:center}
+.phone{width:100%;max-width:320px;aspect-ratio:9/17;border-radius:30px;padding:10px;background:#120d16;box-shadow:0 18px 40px -18px rgba(30,10,40,.55)}
+.screen{position:relative;width:100%;height:100%;border-radius:22px;overflow:hidden}
+.side .under{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:320px}
+.side .under span{font-family:var(--hand);font-size:18px;color:var(--muted)}
+
+/* ---------- the letter itself (single dark world) ---------- */
+.stage{--glow:#c2457a;--acc:#f08fb3;--envA:#e6d6dd;--envB:#f4e9ee;--envC:#d9c3cd;--paper:#fbf4f6;--paperInk:#3a2630;
+  position:absolute;inset:0;background:#120b12;color:#f4e8ee;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:var(--body);container-type:inline-size}
+.stage.sea{--glow:#2f6fae;--acc:#8fc3f0;--envA:#d5dfe8;--envB:#e9f0f6;--envC:#c2d0dd;--paper:#f5f8fb;--paperInk:#1f2c3a;background:#080d15}
+.stage.amber{--glow:#b8742a;--acc:#f2c27e;--envA:#e8dccb;--envB:#f5ede1;--envC:#dccbb3;--paper:#fcf7ef;--paperInk:#3b2d1d;background:#110c07}
+.stage.full{position:fixed;inset:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.stage::before{content:"";position:absolute;left:50%;top:44%;width:140cqw;height:140cqw;max-width:900px;max-height:900px;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,color-mix(in srgb,var(--glow) 45%,transparent) 0%,transparent 60%);animation:breathe 6s ease-in-out infinite;pointer-events:none}
+@keyframes breathe{50%{opacity:.6;transform:translate(-50%,-50%) scale(1.06)}}
+.sparks{position:absolute;inset:0;pointer-events:none}
+.sparks i{position:absolute;bottom:-10px;width:5px;height:5px;border-radius:50%;background:var(--acc);opacity:0;animation:rise linear infinite}
+@keyframes rise{10%{opacity:.7}90%{opacity:.2}100%{transform:translateY(-110cqh) translateX(12px);opacity:0}}
+
+.s1{position:relative;display:flex;flex-direction:column;align-items:center;gap:7cqw;width:100%;transition:opacity .6s,transform .6s}
+.s1 .first{font-family:var(--hand);font-size:clamp(20px,8cqw,40px);color:var(--acc);opacity:0;animation:fadeup 1.2s .3s forwards;text-align:center;padding:0 8cqw}
+.s1 .tap{font-family:var(--hand);font-size:clamp(17px,5cqw,22px);color:color-mix(in srgb,#fff 60%,transparent);opacity:0;animation:fadeup 1s 1.6s forwards,pulse 2.4s 2.6s ease-in-out infinite}
+@keyframes fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pulse{50%{opacity:.45}}
+
+.env{position:relative;width:min(76cqw,340px);aspect-ratio:1.55;cursor:pointer;perspective:900px;opacity:0;animation:fadeup 1s 1s forwards;border:0;padding:0;background:none;filter:drop-shadow(0 18px 30px rgba(0,0,0,.5))}
+.env:hover .seal{transform:translate(-50%,-50%) scale(1.08)}
+.env .back{position:absolute;inset:0;background:var(--envA);border-radius:6px}
+.env .sheet{position:absolute;left:7%;right:7%;top:6%;height:84%;background:var(--paper);border-radius:3px;transition:transform .9s cubic-bezier(.3,.7,.2,1) .5s;z-index:1}
+.env .sheet::after{content:"";position:absolute;left:12%;right:12%;top:22%;height:30%;background:repeating-linear-gradient(transparent 0 9px,color-mix(in srgb,var(--paperInk) 14%,transparent) 9px 10px)}
+.env .pocket{position:absolute;inset:0;background:var(--envB);clip-path:polygon(0 0,50% 54%,100% 0,100% 100%,0 100%);border-radius:6px;z-index:2}
+.env .name{position:absolute;left:0;right:0;bottom:12%;text-align:center;font-family:var(--hand);font-size:clamp(20px,8cqw,36px);color:var(--paperInk);z-index:3;padding:0 10%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.env .flap{position:absolute;left:0;right:0;top:0;height:58%;background:var(--envC);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .6s ease-in;z-index:4;backface-visibility:hidden}
+.env .seal{position:absolute;left:50%;top:56%;width:15%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--glow) 60%,#fff),var(--glow) 70%);z-index:5;display:grid;place-items:center;color:#fff;font-size:clamp(12px,4cqw,20px);box-shadow:0 2px 6px rgba(0,0,0,.35);transition:transform .3s,opacity .3s}
+.env.open .flap{transform:rotateX(180deg);z-index:0}
+.env.open .seal{opacity:0}
+.env.open .sheet{transform:translateY(-62%)}
+.s1.gone{opacity:0;transform:translateY(30px) scale(.96);pointer-events:none}
+
+.s2{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6cqw;overflow:auto}
+.s2[hidden]{display:none!important}
+.letter{position:relative;width:100%;max-width:520px;margin:auto;background:var(--paper);color:var(--paperInk);border-radius:6px;padding:clamp(20px,8cqw,44px) clamp(18px,7cqw,40px);
+  box-shadow:0 30px 60px -20px rgba(0,0,0,.7);animation:unfold .9s cubic-bezier(.2,.8,.2,1) both;display:flex;flex-direction:column;gap:clamp(10px,4cqw,18px)}
+@keyframes unfold{from{opacity:0;transform:translateY(40px) scale(.9) rotate(-1.5deg)}to{opacity:1;transform:none}}
+.letter .greet{font-family:var(--hand);font-size:clamp(24px,9cqw,40px);color:var(--glow);line-height:1.1;margin:0}
+.letter .body{font-family:var(--hand);font-size:clamp(18px,5.6cqw,24px);line-height:1.45;display:flex;flex-direction:column;gap:.7em}
+.letter .body p{margin:0;opacity:0;animation:fadeup .9s forwards;overflow-wrap:anywhere}
+.letter .sign{font-family:var(--hand);font-size:clamp(20px,7cqw,30px);text-align:right;margin:0;opacity:0;animation:fadeup .9s forwards}
+.letter .acts{display:flex;flex-direction:column;gap:10px;margin-top:6px;opacity:0;animation:fadeup .9s forwards}
+.letter .acts a,.letter .acts button{font:inherit;font-weight:700;font-size:clamp(14px,4cqw,16px);text-align:center;text-decoration:none;border:0;border-radius:999px;padding:12px 16px;cursor:pointer}
+.letter .thanks{background:var(--acc);color:#2b1220}
+.stage.sea .letter .thanks{color:#0e2236}.stage.amber .letter .thanks{color:#2e1e08}
+.letter .song{background:transparent;color:var(--paperInk);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--paperInk) 35%,transparent)}
+.make{position:absolute;bottom:max(14px,env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;font-size:12.5px}
+.make a{color:color-mix(in srgb,#fff 55%,transparent)}
+.burst{position:absolute;pointer-events:none;font-size:20px;animation:burst 1.2s ease-out forwards;z-index:9}
+@keyframes burst{to{transform:translate(var(--dx),var(--dy)) scale(.6);opacity:0}}
+.hw.line{height:1.45em;width:auto;max-width:100%;display:inline-block;vertical-align:middle}
+.hw.block{display:block;width:100%;height:auto}
+.s1 .first,.s1 .tap,.env .name{line-height:1.45}
+.stage.nojs{position:relative;min-height:100vh;overflow:visible;padding:28px 16px;display:block}
+.stage.nojs .letter,.stage.nojs .letter *{animation:none!important;opacity:1!important}
+.stage.nojs::before{position:fixed}
+.bad{color:#f4e8ee;text-align:center;padding:24px;font-size:15px;max-width:340px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important;transition-delay:0s!important}
+  .sparks{display:none}}
+</style>
+
+<div id="app"></div>
+
+<script>
+// Full link to this published page (filled in after first publish)
+const BASE = location.origin+location.pathname;
+
+const THEMES = [
+  {id:"rose", name:"Роза", c:"#d45b8c"},
+  {id:"sea", name:"Море", c:"#3d7fc0"},
+  {id:"amber", name:"Свеча", c:"#c88a3a"},
+];
+const DEFAULTS = {
+  n:"Аня",
+  a:"", b:"", c:"",
+  t:"Просто хотел сказать, что ты делаешь мои дни лучше.\nСпасибо, что ты есть. Пусть сегодня будет тёплым и спокойным.",
+  f:"твой друг", r:"", m:"", th:"rose"
+};
+const FALLBACK = {a:"это тебе", b:"нажми на конверт", c:"это тебе, {name}"};
+const MAXT = 1500;
+
+/* ---------- encoding: data -> url-safe token ---------- */
+function b64u(bytes){let s="";for(let i=0;i<bytes.length;i++)s+=String.fromCharCode(bytes[i]);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function unb64u(str){str=str.replace(/-/g,"+").replace(/_/g,"/");while(str.length%4)str+="=";const s=atob(str);const b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return b}
+function pack(d){const o={};for(const k of Object.keys(DEFAULTS)){if(d[k])o[k]=d[k]}return o}
+async function encode(d){
+  const bytes=new TextEncoder().encode(JSON.stringify(pack(d)));
+  try{const buf=await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer();return "z"+b64u(new Uint8Array(buf))}
+  catch(e){return "j"+b64u(bytes)}
+}
+async function decode(tok){
+  const kind=tok[0],raw=unb64u(tok.slice(1));let bytes=raw;
+  if(kind==="z"){bytes=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer())}
+  else if(kind!=="j")throw new Error("bad");
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+/* ---------- the letter ---------- */
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function safeUrl(u){u=(u||"").trim();if(!u)return "";if(!/^https?:\/\//i.test(u))u="https://"+u;try{const x=new URL(u);return x.protocol.startsWith("http")?x.href:""}catch(e){return ""}}
+function tgUser(u){return (u||"").trim().replace(/^@/,"").replace(/^https?:\/\/t\.me\//i,"").replace(/[^A-Za-z0-9_]/g,"")}
+
+function mountLetter(root,d,{full=false}={}){
+  const v=k=>(d[k]&&d[k].trim())||FALLBACK[k];
+  const name=(d.n||"").trim();
+  const th=["rose","sea","amber"].includes(d.th)?d.th:"rose";
+  const I=d._img||{};
+  const hw=(k,txt,cls)=>I[k]?`<img class="hw ${cls}" src="${I[k]}" alt="${esc(txt).replace(/"/g,"&quot;")}">`:esc(txt);
+  root.innerHTML="";
+  const st=document.createElement("div");
+  st.className="stage "+th+(full?" full":"");
+  let sparks="";for(let i=0;i<14;i++){sparks+=`<i style="left:${Math.random()*100}%;animation-duration:${7+Math.random()*8}s;animation-delay:${-Math.random()*12}s;transform:scale(${.5+Math.random()})"></i>`}
+  st.innerHTML=`<div class="sparks">${sparks}</div>
+  <div class="s1">
+    <div class="first">${hw("a",v("a"),"line")}</div>
+    <button class="env" type="button" aria-label="Открыть конверт">
+      <span class="back"></span><span class="sheet"></span><span class="pocket"></span>
+      <span class="name">${hw("name",name,"line")}</span><span class="flap"></span><span class="seal">♥</span>
+    </button>
+    <div class="tap">${hw("b",v("b"),"line")}</div>
+  </div>
+  <div class="s2" hidden></div>
+  ${full&&BASE?`<div class="make"><a href="${BASE}" target="_blank" rel="noopener">написать своё письмо</a></div>`:""}`;
+  root.appendChild(st);
+  const env=st.querySelector(".env"),s1=st.querySelector(".s1"),s2=st.querySelector(".s2");
+  let opened=false;
+  env.addEventListener("click",()=>{
+    if(opened)return;opened=true;env.classList.add("open");
+    setTimeout(()=>s1.classList.add("gone"),1500);
+    setTimeout(()=>showLetter(),2000);
+  });
+  function showLetter(){
+    s1.hidden=true;s2.hidden=false;
+    const greet=v("c").replace(/\{name\}/g,name);
+    const paras=(d.t||"").split(/\n+/).map(p=>p.trim()).filter(Boolean);
+    let delay=.7;
+    const ps=paras.map((p,i)=>{const inner=I.p&&I.p[i]?`<img class="hw block" src="${I.p[i]}" alt="${esc(p).replace(/"/g,"&quot;")}">`:esc(p);const h=`<p style="animation-delay:${delay}s">${inner}</p>`;delay+=.55;return h}).join("");
+    const tg=tgUser(d.r),song=safeUrl(d.m);
+    const thanks=tg?`<a class="thanks" href="https://t.me/${tg}" target="_blank" rel="noopener">Thank you too 🤍</a>`:`<button class="thanks" type="button">Thank you too 🤍</button>`;
+    s2.innerHTML=`<article class="letter">
+      <p class="greet">${hw("greet",greet,"block")}</p>
+      <div class="body">${ps}</div>
+      ${d.f?`<p class="sign" style="animation-delay:${delay}s">${hw("sign",d.f,"line")}</p>`:""}
+      <div class="acts" style="animation-delay:${delay+.5}s">${thanks}${song?`<a class="song" href="${esc(song)}" target="_blank" rel="noopener">♪ A song for you</a>`:""}</div>
+    </article>`;
+    s2.querySelector(".thanks").addEventListener("click",e=>hearts(st,e));
+  }
+}
+function hearts(st,e){
+  const r=st.getBoundingClientRect();
+  for(let i=0;i<12;i++){
+    const h=document.createElement("span");h.className="burst";h.textContent=["🤍","♥","✦"][i%3];
+    h.style.left=(e.clientX-r.left)+"px";h.style.top=(e.clientY-r.top)+"px";
+    const a=Math.random()*Math.PI*2,dist=60+Math.random()*80;
+    h.style.setProperty("--dx",Math.cos(a)*dist+"px");h.style.setProperty("--dy",(Math.sin(a)*dist-60)+"px");
+    h.style.color="var(--acc)";st.appendChild(h);setTimeout(()=>h.remove(),1300);
+  }
+}
+
+/* ---------- editor ---------- */
+function loadDraft(){try{const s=localStorage.getItem("pismo-draft");if(s)return {...DEFAULTS,...JSON.parse(s)}}catch(e){}return {...DEFAULTS}}
+function saveDraft(d){try{localStorage.setItem("pismo-draft",JSON.stringify(d))}catch(e){}}
+
+function editor(){
+  const d=loadDraft();
+  document.getElementById("app").innerHTML=`
+  <div class="wrap">
+    <header class="top"><h1>Письмо в <em>конверте</em></h1><p>Заполни, проверь превью и отправь ссылку в Telegram.</p></header>
+    <div class="grid">
+      <div class="cards">
+        <section class="card"><h2>Кому</h2><p class="hint">Имя будет написано от руки на конверте.</p>
+          <div class="field"><label for="n">Имя получателя</label><input id="n" maxlength="40" autocomplete="off"></div></section>
+        <section class="card"><h2>Первый экран</h2><p class="hint">Что видно до открытия. Пустое поле — останется текст в подсказке.</p>
+          <div class="field"><label for="a">Строка над конвертом</label><input id="a" maxlength="60" placeholder="${FALLBACK.a}"></div>
+          <div class="field"><label for="b">Подпись под конвертом</label><input id="b" maxlength="60" placeholder="${FALLBACK.b}"></div>
+          <div class="field"><label for="c">Обращение на листе</label><input id="c" maxlength="80" placeholder="${FALLBACK.c}"><small>{name} заменится на имя получателя.</small></div></section>
+        <section class="card"><h2>Текст письма</h2><p class="hint">Каждая строка появится отдельно, одна за другой.</p>
+          <div class="field"><label for="t">Письмо</label><textarea id="t" maxlength="${MAXT}"></textarea><small><span class="count" id="cnt"></span> / ${MAXT}</small></div>
+          <div class="row2">
+            <div class="field"><label for="f">Подпись</label><input id="f" maxlength="40" placeholder="от кого"></div>
+            <div class="field"><label for="r">Твой Telegram для ответа</label><input id="r" maxlength="40" placeholder="@username"><small>Кнопка «Thank you too» откроет чат с тобой.</small></div>
+          </div>
+          <div class="field"><label for="m">Ссылка на песню</label><input id="m" maxlength="300" placeholder="https://music.yandex.ru/…"><small>Необязательно. Появится кнопка «A song for you».</small></div></section>
+        <section class="card"><h2>Настроение</h2>
+          <div class="themes" id="themes">${THEMES.map(t=>`<button type="button" data-th="${t.id}"><span class="dot" style="background:${t.c}"></span>${t.name}</button>`).join("")}</div></section>
+        <section class="card"><h2>Отправить</h2>
+          <p class="hint">Всё письмо спрятано прямо в ссылке. Открыть его может любой, у кого она есть.</p>
+          <div class="actions"><button class="btn" id="make" type="button">Создать ссылку</button><button class="btn ghost" id="file" type="button">Скачать файлом</button></div>
+          <div class="status" id="fstatus" role="status"></div>
+          <div class="out" id="out" hidden>
+            <div class="linkbox" id="link"></div>
+            <div class="actions">
+              <button class="btn" id="copy" type="button">Скопировать</button>
+              <a class="btn ghost" id="tg" target="_blank" rel="noopener" href="#">Отправить в Telegram</a>
+              <a class="btn ghost" id="open" target="_blank" rel="noopener" href="#">Открыть как получатель</a>
+            </div>
+            <div class="status" id="status" role="status"></div>
+          </div></section>
+      </div>
+      <aside class="side">
+        <div class="phone"><div class="screen" id="pv"></div></div>
+        <div class="under"><span>живое превью</span><button class="btn ghost" id="replay" type="button">Сначала</button></div>
+      </aside>
+    </div>
+  </div>`;
+  const ids=["n","a","b","c","t","f","r","m"];
+  ids.forEach(k=>{const el=document.getElementById(k);el.value=d[k]||"";el.addEventListener("input",()=>{d[k]=el.value;changed()})});
+  const thBtns=[...document.querySelectorAll("#themes button")];
+  function syncTh(){thBtns.forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.th===d.th)))}
+  thBtns.forEach(b=>b.addEventListener("click",()=>{d.th=b.dataset.th;syncTh();changed()}));
+  syncTh();
+  setupFile(d);
+  const pv=document.getElementById("pv"),cnt=document.getElementById("cnt"),out=document.getElementById("out");
+  let tmr;
+  function changed(){cnt.textContent=(d.t||"").length;saveDraft(d);if(out)out.hidden=true;clearTimeout(tmr);tmr=setTimeout(()=>mountLetter(pv,d),450)}
+  cnt.textContent=(d.t||"").length;
+  mountLetter(pv,d);
+  document.getElementById("replay").addEventListener("click",()=>mountLetter(pv,d));
+
+  document.getElementById("make")?.addEventListener("click",async()=>{
+    const st=document.getElementById("status");
+    if(!(d.n||"").trim()){document.getElementById("n").focus();return}
+    const tok=await encode(d);
+    const url=BASE?BASE+"#"+tok:"#"+tok;
+    document.getElementById("link").textContent=url;
+    const share="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent("💌 Тебе письмо, "+d.n.trim());
+    document.getElementById("tg").href=share;
+    document.getElementById("open").href=url;
+    st.textContent=BASE?"":"Добавь этот хвост к ссылке на страницу.";
+    out.hidden=false;
+  });
+  document.getElementById("copy")?.addEventListener("click",()=>{
+    const box=document.getElementById("link"),st=document.getElementById("status");
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(box);const s=getSelection();s.removeAllRanges();s.addRange(r);st.textContent="Ссылка выделена, нажми Ctrl+C."};
+    try{navigator.clipboard.writeText(box.textContent).then(()=>st.textContent="Ссылка скопирована.",sel)}catch(e){sel()}
+  });
+}
+
+/* ---------- standalone file ---------- */
+const INK={rose:{ink:"#3a2630",glow:"#c2457a",acc:"#f08fb3"},sea:{ink:"#1f2c3a",glow:"#2f6fae",acc:"#8fc3f0"},amber:{ink:"#3b2d1d",glow:"#b8742a",acc:"#f2c27e"}};
+const HF='"Marck Script", cursive';
+function wrapLines(ctx,text,maxW){
+  const out=[];let line="";
+  for(const w of text.split(/\s+/).filter(Boolean)){
+    const t=line?line+" "+w:w;
+    if(ctx.measureText(t).width<=maxW){line=t;continue}
+    if(line)out.push(line);
+    if(ctx.measureText(w).width<=maxW){line=w;continue}
+    line="";for(const ch of w){if(ctx.measureText(line+ch).width>maxW){out.push(line);line=ch}else line+=ch}
+  }
+  if(line)out.push(line);return out.length?out:[""];
+}
+function textImg(text,{size,color,width=0,lh=1.45,align="left"}){
+  const S=3,pad=size*S*.3,c=document.createElement("canvas"),ctx=c.getContext("2d");
+  const font=`${size*S}px ${HF}`;ctx.font=font;
+  const lines=width?wrapLines(ctx,text,width*S):[text];
+  const inner=width?width*S:Math.ceil(ctx.measureText(text).width);
+  c.width=Math.ceil(inner+pad*2);c.height=Math.ceil(lines.length*size*lh*S);
+  ctx.font=font;ctx.fillStyle=color;ctx.textBaseline="middle";ctx.textAlign=align;
+  const x=align==="center"?c.width/2:align==="right"?c.width-pad:pad;
+  lines.forEach((l,i)=>ctx.fillText(l,x,(i+.5)*size*lh*S));
+  return c.toDataURL("image/png");
+}
+async function renderHandwriting(d){
+  try{await document.fonts.load(`40px ${HF}`,"Аяaz")}catch(e){}
+  const th=INK[d.th]||INK.rose,name=(d.n||"").trim();
+  const v=k=>(d[k]&&d[k].trim())||FALLBACK[k];
+  const greet=v("c").replace(/\{name\}/g,name);
+  const paras=(d.t||"").split(/\n+/).map(p=>p.trim()).filter(Boolean);
+  const img={
+    a:textImg(v("a"),{size:40,color:th.acc}),
+    b:textImg(v("b"),{size:40,color:"rgba(255,255,255,.6)"}),
+    name:textImg(name,{size:40,color:th.ink}),
+    greet:textImg(greet,{size:34,color:th.glow,width:440,lh:1.15}),
+    p:paras.map(p=>textImg(p,{size:23,color:th.ink,width:440}))
+  };
+  if(d.f)img.sign=textImg(d.f,{size:40,color:th.ink});
+  return img;
+}
+async function buildFile(d){
+  const I=await renderHandwriting(d);
+  const css=document.getElementById("letter-css").textContent;
+  const name=(d.n||"").trim();
+  const th=["rose","sea","amber"].includes(d.th)?d.th:"rose";
+  const q=x=>esc(x).replace(/"/g,"&quot;");
+  const v=k=>(d[k]&&d[k].trim())||FALLBACK[k];
+  const greet=v("c").replace(/\{name\}/g,name);
+  const paras=(d.t||"").split(/\n+/).map(p=>p.trim()).filter(Boolean);
+  const tg=tgUser(d.r),song=safeUrl(d.m);
+  const im=(k,src,alt,cls)=>`<img class="hw ${cls}" data-k="${k}" src="${src}" alt="${q(alt)}">`;
+  const staticHtml=`<div class="stage ${th} nojs"><article class="letter">
+<p class="greet">${im("greet",I.greet,greet,"block")}</p>
+<div class="body">${paras.map((p,i)=>`<p>${im("p"+i,I.p[i],p,"block")}</p>`).join("")}</div>
+${d.f?`<p class="sign">${im("sign",I.sign,d.f,"line")}</p>`:""}
+<div class="acts">${tg?`<a class="thanks" href="https://t.me/${tg}">Thank you too 🤍</a>`:""}${song?`<a class="song" href="${q(song)}">♪ A song for you</a>`:""}</div>
+</article></div>
+<div hidden>${im("a",I.a,v("a"),"line")}${im("b",I.b,v("b"),"line")}${im("name",I.name,name,"line")}</div>`;
+  const code=[esc,safeUrl,tgUser,hearts,mountLetter].map(f=>f.toString()).join("\n");
+  const data=JSON.stringify(pack(d)).replace(/</g,"\\u003c");
+  return `<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>💌 ${q(name||"For you")}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Manrope:wght@400;500;700&family=Marck+Script&display=swap">
+<style>${css}
+html,body{margin:0;min-height:100%;background:#120b12}[hidden]{display:none!important}</style>
+</head><body><div id="app">${staticHtml}</div>
+<script>
+const BASE="";const FALLBACK=${JSON.stringify(FALLBACK)};
+${code}
+(function(){var I={p:[]};document.querySelectorAll("[data-k]").forEach(function(e){var k=e.getAttribute("data-k");if(/^p\\d+$/.test(k))I.p[+k.slice(1)]=e.getAttribute("src");else I[k]=e.getAttribute("src")});
+var d=${data};d._img=I;document.documentElement.style.height="100%";document.body.style.height="100%";
+mountLetter(document.getElementById("app"),d,{full:true});})();
+<\/script></body></html>`;
+}
+async function setupFile(d){
+  const btn=document.getElementById("file");if(!btn)return;
+  btn.addEventListener("click",async()=>{
+    const st=document.getElementById("fstatus");
+    if(!(d.n||"").trim()){document.getElementById("n").focus();return}
+    const html=await buildFile(d);
+    const url=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+    const a=document.createElement("a");a.href=url;a.download="Письмо для "+(d.n.trim().replace(/[\\/:*?"<>|]/g,"")||"тебя")+".html";
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+    st.textContent="Файл скачан.";
+  });
+}
+
+/* ---------- route ---------- */
+(async function(){
+  const h=location.hash.slice(1);
+  if(h&&/^[zj][A-Za-z0-9_-]+$/.test(h)){
+    const app=document.getElementById("app");
+    try{const d=await decode(h);document.title="💌 Письмо для "+(d.n||"тебя");mountLetter(app,d,{full:true})}
+    catch(e){app.innerHTML=`<div class="stage full"><p class="bad">Ссылка на письмо повреждена — похоже, она скопировалась не целиком. Попроси отправителя прислать её ещё раз.</p></div>`}
+  }else editor();
+})();
+window.addEventListener("hashchange",()=>location.reload());
+</script>
+
+</body></html>
